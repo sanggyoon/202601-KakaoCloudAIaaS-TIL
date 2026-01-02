@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Flexbox & Grid 완벽 가이드</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <!-- Flexbox 네비게이션 -->
+    <nav class="navbar">
+      <div class="nav-logo">🎨 Flex & Grid</div>
+      <ul class="nav-menu">
+        <li><a href="#flex">Flexbox</a></li>
+        <li><a href="#grid">Grid</a></li>
+        <li><a href="#examples">Examples</a></li>
+      </ul>
+      <div class="nav-actions">
+        <button class="btn btn-outline">로그인</button>
+        <button class="btn btn-solid">시작하기</button>
+      </div>
+    </nav>
+
+    <!-- Flexbox 섹션 -->
+    <section class="flex-section" id="flex">
+      <h2 class="section-title">💪 Flexbox 카드 레이아웃</h2>
+      <div class="code-note">
+        display: flex | flex-wrap: wrap | justify-content: center | gap: 2rem
+      </div>
+
+      <div class="flex-cards">
+        <div class="card">
+          <div class="card-image">📱</div>
+          <div class="card-content">
+            <h3 class="card-title">반응형 디자인</h3>
+            <p class="card-description">
+              Flexbox를 활용한 유연한 카드 레이아웃입니다. flex-wrap으로
+              자동으로 줄바꿈됩니다.
+            </p>
+            <div class="card-footer">
+              <span class="card-price">₩29,000</span>
+              <button class="card-button">구매하기</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-image">🎯</div>
+          <div class="card-content">
+            <h3 class="card-title">자동 정렬</h3>
+            <p class="card-description">
+              justify-content와 align-items로 완벽한 정렬을 구현합니다. 모든
+              카드가 동일한 높이를 유지합니다.
+            </p>
+            <div class="card-footer">
+              <span class="card-price">₩39,000</span>
+              <button class="card-button">구매하기</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-image">⚡</div>
+          <div class="card-content">
+            <h3 class="card-title">간격 제어</h3>
+            <p class="card-description">
+              gap 속성으로 간단하게 아이템 간격을 제어할 수 있습니다. 마진
+              계산이 필요 없습니다.
+            </p>
+            <div class="card-footer">
+              <span class="card-price">₩49,000</span>
+              <button class="card-button">구매하기</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <h2 class="section-title" style="margin-top: 3rem">
+        🎯 Flexbox 완벽 중앙 정렬
+      </h2>
+      <div class="code-note">
+        display: flex | justify-content: center | align-items: center
+      </div>
+
+      <div class="flex-center-demo">
+        <div class="center-box">
+          <h3>수직/수평 완벽 중앙 정렬</h3>
+          <p>단 3줄의 CSS로 구현</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Grid 섹션 -->
+    <section class="grid-section" id="grid">
+      <h2 class="section-title">🏗️ Grid 페이지 레이아웃</h2>
+      <div class="code-note">
+        grid-template-areas | grid-template-columns: 250px 1fr 300px
+      </div>
+
+      <div class="page-layout">
+        <div class="grid-header">
+          <h2>Header (grid-area: header)</h2>
+        </div>
+        <div class="grid-sidebar">
+          <h3>Sidebar</h3>
+          <p>왼쪽 사이드바</p>
+          <p>250px 고정 너비</p>
+        </div>
+        <div class="grid-main">
+          <h3>Main Content</h3>
+          <p>메인 콘텐츠 영역</p>
+          <p>1fr - 남은 공간 차지</p>
+        </div>
+        <div class="grid-aside">
+          <h3>Aside</h3>
+          <p>오른쪽 사이드바</p>
+          <p>300px 고정 너비</p>
+        </div>
+        <div class="grid-footer">Footer (grid-area: footer)</div>
+      </div>
+
+      <h2 class="section-title">🖼️ Grid 반응형 갤러리</h2>
+      <div class="code-note">
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr))
+      </div>
+
+      <div class="grid-gallery">
+        <div class="gallery-item">1<br /><small>span 2x2</small></div>
+        <div class="gallery-item">2</div>
+        <div class="gallery-item">3</div>
+        <div class="gallery-item">4</div>
+        <div class="gallery-item">5<br /><small>span 2</small></div>
+        <div class="gallery-item">6</div>
+        <div class="gallery-item">7</div>
+        <div class="gallery-item">8</div>
+      </div>
+
+      <h2 class="section-title">📊 Grid 대시보드 레이아웃</h2>
+      <div class="code-note">
+        grid-template-columns: repeat(4, 1fr) | 명시적 grid-column, grid-row
+        배치
+      </div>
+
+      <div class="dashboard">
+        <div class="dashboard-item item-1">
+          <h3>총 매출</h3>
+          <div class="dashboard-value">₩12.5M</div>
+          <small>전월 대비 +15%</small>
+        </div>
+        <div class="dashboard-item item-2">
+          <h3>신규 사용자</h3>
+          <div class="dashboard-value">1,234</div>
+          <small>전월 대비 +23%</small>
+        </div>
+        <div class="dashboard-item item-3">
+          <h3>활성 사용자</h3>
+          <div class="dashboard-value">8,542</div>
+          <small>전월 대비 +8%</small>
+        </div>
+        <div class="dashboard-item item-4">
+          <h3>전환율</h3>
+          <div class="dashboard-value">3.24%</div>
+          <small>전월 대비 +0.4%</small>
+        </div>
+        <div class="dashboard-item item-5">
+          <h3>평균 주문액</h3>
+          <div class="dashboard-value">₩45,300</div>
+          <small>전월 대비 +12%</small>
+        </div>
+        <div class="dashboard-item item-6">
+          <h3>리텐션</h3>
+          <div class="dashboard-value">68%</div>
+          <small>전월 대비 +5%</small>
+        </div>
+      </div>
+    </section>
+  </body>
+</html>

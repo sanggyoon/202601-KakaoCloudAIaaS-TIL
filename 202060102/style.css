@@ -1,0 +1,428 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.6;
+  color: #333;
+}
+
+/* ==================== FLEXBOX 예시 ==================== */
+
+/* 1. Flex 네비게이션 바 */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.nav-logo {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.nav-menu {
+  display: flex;
+  gap: 2rem;
+  list-style: none;
+}
+
+.nav-menu a {
+  color: white;
+  text-decoration: none;
+  transition: opacity 0.3s;
+}
+
+.nav-menu a:hover {
+  opacity: 0.8;
+}
+
+.nav-actions {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.btn {
+  padding: 0.5rem 1.5rem;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+}
+
+.btn-outline {
+  background: transparent;
+  border: 2px solid white;
+  color: white;
+}
+
+.btn-solid {
+  background: white;
+  color: #667eea;
+  font-weight: bold;
+}
+
+/* 2. Flex 카드 레이아웃 (내부 요소 정렬) */
+.flex-section {
+  padding: 3rem 2rem;
+  background: #f7fafc;
+}
+
+.section-title {
+  text-align: center;
+  font-size: 2rem;
+  margin-bottom: 2rem;
+  color: #2d3748;
+}
+
+.flex-cards {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  background: white;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s, box-shadow 0.3s;
+  flex: 1 1 300px;
+  max-width: 350px;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+}
+
+.card-image {
+  width: 100%;
+  height: 200px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 3rem;
+}
+
+.card-content {
+  padding: 1.5rem;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.card-title {
+  font-size: 1.25rem;
+  margin-bottom: 0.5rem;
+  color: #2d3748;
+}
+
+.card-description {
+  color: #718096;
+  margin-bottom: 1rem;
+  flex-grow: 1;
+}
+
+.card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 1rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.card-price {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #667eea;
+}
+
+.card-button {
+  padding: 0.5rem 1rem;
+  background: #667eea;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+/* 3. Flex 중앙 정렬 (Perfect Centering) */
+.flex-center-demo {
+  height: 300px;
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 2rem 0;
+}
+
+.center-box {
+  background: white;
+  padding: 2rem 3rem;
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  text-align: center;
+}
+
+/* ==================== GRID 예시 ==================== */
+
+.grid-section {
+  padding: 3rem 2rem;
+  background: white;
+}
+
+/* 1. Grid 페이지 레이아웃 */
+.page-layout {
+  display: grid;
+  grid-template-columns: 250px 1fr 300px;
+  grid-template-rows: auto 1fr auto;
+  grid-template-areas:
+    'header header header'
+    'sidebar main aside'
+    'footer footer footer';
+  gap: 1rem;
+  max-width: 1400px;
+  margin: 0 auto 3rem;
+  min-height: 500px;
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.grid-header {
+  grid-area: header;
+  background: #4a5568;
+  color: white;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.grid-sidebar {
+  grid-area: sidebar;
+  background: #edf2f7;
+  padding: 1.5rem;
+}
+
+.grid-main {
+  grid-area: main;
+  background: #f7fafc;
+  padding: 1.5rem;
+}
+
+.grid-aside {
+  grid-area: aside;
+  background: #edf2f7;
+  padding: 1.5rem;
+}
+
+.grid-footer {
+  grid-area: footer;
+  background: #2d3748;
+  color: white;
+  padding: 1.5rem;
+  text-align: center;
+}
+
+/* 2. Grid 반응형 갤러리 (auto-fit) */
+.grid-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  max-width: 1200px;
+  margin: 0 auto 3rem;
+}
+
+.gallery-item {
+  aspect-ratio: 1;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 2rem;
+  font-weight: bold;
+  transition: transform 0.3s;
+  cursor: pointer;
+}
+
+.gallery-item:hover {
+  transform: scale(1.05);
+}
+
+/* 특정 아이템 크기 조정 */
+.gallery-item:nth-child(1) {
+  grid-column: span 2;
+  grid-row: span 2;
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.gallery-item:nth-child(5) {
+  grid-column: span 2;
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+/* 3. Grid 복잡한 레이아웃 (명시적 배치) */
+.dashboard {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(3, 150px);
+  gap: 1rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.dashboard-item {
+  background: white;
+  border-radius: 10px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.dashboard-item h3 {
+  color: #2d3748;
+  margin-bottom: 0.5rem;
+}
+
+.dashboard-value {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #667eea;
+}
+
+.item-1 {
+  grid-column: 1 / 3;
+  grid-row: 1 / 2;
+  background: linear-gradient(135deg, #667eea20 0%, #764ba220 100%);
+}
+.item-2 {
+  grid-column: 3 / 5;
+  grid-row: 1 / 2;
+  background: linear-gradient(135deg, #f093fb20 0%, #f5576c20 100%);
+}
+.item-3 {
+  grid-column: 1 / 2;
+  grid-row: 2 / 4;
+  background: linear-gradient(135deg, #4facfe20 0%, #00f2fe20 100%);
+}
+.item-4 {
+  grid-column: 2 / 4;
+  grid-row: 2 / 3;
+  background: linear-gradient(135deg, #43e97b20 0%, #38f9d720 100%);
+}
+.item-5 {
+  grid-column: 4 / 5;
+  grid-row: 2 / 4;
+  background: linear-gradient(135deg, #fa709a20 0%, #fee14020 100%);
+}
+.item-6 {
+  grid-column: 2 / 4;
+  grid-row: 3 / 4;
+  background: linear-gradient(135deg, #30cfd020 0%, #33086720 100%);
+}
+
+/* ==================== 반응형 디자인 ==================== */
+
+@media (max-width: 1024px) {
+  .page-layout {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      'header'
+      'main'
+      'sidebar'
+      'aside'
+      'footer';
+  }
+
+  .dashboard {
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(6, 150px);
+  }
+
+  .item-1 {
+    grid-column: 1 / 3;
+    grid-row: 1 / 2;
+  }
+  .item-2 {
+    grid-column: 1 / 3;
+    grid-row: 2 / 3;
+  }
+  .item-3 {
+    grid-column: 1 / 2;
+    grid-row: 3 / 5;
+  }
+  .item-4 {
+    grid-column: 2 / 3;
+    grid-row: 3 / 4;
+  }
+  .item-5 {
+    grid-column: 2 / 3;
+    grid-row: 4 / 6;
+  }
+  .item-6 {
+    grid-column: 1 / 2;
+    grid-row: 5 / 6;
+  }
+}
+
+@media (max-width: 768px) {
+  .navbar {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .nav-menu {
+    flex-direction: column;
+    gap: 0.5rem;
+    text-align: center;
+  }
+
+  .flex-cards {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .dashboard {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-item {
+    grid-column: 1 !important;
+    grid-row: auto !important;
+  }
+}
+
+.code-note {
+  background: #2d3748;
+  color: #48bb78;
+  padding: 1rem;
+  border-radius: 5px;
+  margin: 1rem 0;
+  font-family: 'Courier New', monospace;
+  font-size: 0.9rem;
+}
