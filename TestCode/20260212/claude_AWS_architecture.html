@@ -1,0 +1,981 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>대규모 AWS 아키텍처</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        background: #0f1419;
+        color: #e1e8ed;
+        padding: 20px;
+        overflow-x: auto;
+      }
+      .container {
+        min-width: 1400px;
+        margin: 0 auto;
+        position: relative;
+      }
+      h1 {
+        text-align: center;
+        margin-bottom: 30px;
+        color: #ff9900;
+      }
+
+      /* SVG for connections */
+      .connections {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 1;
+      }
+
+      .content-layer {
+        position: relative;
+        z-index: 2;
+      }
+
+      .vpc {
+        border: 3px solid #ff9900;
+        border-radius: 10px;
+        padding: 30px;
+        background: #1a1f2e;
+        margin-bottom: 20px;
+      }
+      .vpc-header {
+        background: #ff9900;
+        color: #000;
+        padding: 10px 20px;
+        border-radius: 5px;
+        margin: -30px -30px 20px -30px;
+        font-weight: bold;
+      }
+      .region {
+        display: flex;
+        gap: 20px;
+        margin-bottom: 20px;
+      }
+      .az {
+        flex: 1;
+        border: 2px solid #4a90e2;
+        border-radius: 8px;
+        padding: 20px;
+        background: #252d3d;
+      }
+      .az-title {
+        background: #4a90e2;
+        color: #fff;
+        padding: 8px 15px;
+        border-radius: 5px;
+        margin: -20px -20px 15px -20px;
+        font-weight: bold;
+        font-size: 14px;
+      }
+      .subnet {
+        border: 2px solid #50c878;
+        border-radius: 6px;
+        padding: 15px;
+        margin-bottom: 15px;
+        background: #2a3548;
+      }
+      .subnet-header {
+        font-weight: bold;
+        color: #50c878;
+        margin-bottom: 10px;
+        font-size: 13px;
+      }
+      .instance {
+        background: #3d4a5c;
+        border: 1px solid #5a6a7f;
+        border-radius: 5px;
+        padding: 12px;
+        margin: 8px 0;
+        font-size: 12px;
+        position: relative;
+      }
+      .instance-title {
+        font-weight: bold;
+        color: #ffd700;
+        margin-bottom: 6px;
+      }
+      .ip {
+        color: #a8dadc;
+        margin: 3px 0;
+      }
+      .public-ip {
+        color: #ff6b6b;
+      }
+      .service {
+        background: #2d3748;
+        border: 2px dashed #9b59b6;
+        border-radius: 6px;
+        padding: 15px;
+        margin: 15px 0;
+      }
+      .service-title {
+        font-weight: bold;
+        color: #9b59b6;
+        margin-bottom: 8px;
+      }
+      .legend {
+        display: flex;
+        gap: 20px;
+        justify-content: center;
+        margin-top: 30px;
+        flex-wrap: wrap;
+      }
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+      }
+      .legend-box {
+        width: 20px;
+        height: 20px;
+        border-radius: 3px;
+      }
+      .legend-line {
+        width: 40px;
+        height: 3px;
+      }
+      .route-table {
+        background: #1e3a5f;
+        border: 2px solid #3498db;
+        border-radius: 5px;
+        padding: 10px;
+        margin: 10px 0;
+        font-size: 11px;
+      }
+      .route-table-title {
+        font-weight: bold;
+        color: #3498db;
+        margin-bottom: 6px;
+        font-size: 12px;
+      }
+      .route-entry {
+        color: #87ceeb;
+        margin: 3px 0;
+        font-family: monospace;
+      }
+      .flow-step {
+        position: absolute;
+        background: #00ff00;
+        color: #000;
+        font-weight: bold;
+        font-size: 14px;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10;
+      }
+      .flow-label {
+        background: rgba(0, 255, 0, 0.2);
+        border: 1px solid #00ff00;
+        color: #00ff00;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: bold;
+        margin-bottom: 5px;
+        display: inline-block;
+      }
+      .igw {
+        background: #ff6b6b;
+        border: 2px solid #ff6b6b;
+        border-radius: 6px;
+        padding: 12px;
+        text-align: center;
+        margin-bottom: 20px;
+        font-weight: bold;
+      }
+      .nat {
+        background: #f39c12;
+        border: 1px solid #f39c12;
+        border-radius: 5px;
+        padding: 10px;
+        margin: 8px 0;
+        font-size: 12px;
+        color: #000;
+        font-weight: bold;
+      }
+      .user-icon {
+        text-align: center;
+        font-size: 48px;
+        margin-bottom: 20px;
+      }
+
+      .flow-arrow {
+        position: absolute;
+        font-size: 20px;
+        color: #00ff00;
+        animation: pulse 2s infinite;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 0.5;
+        }
+        50% {
+          opacity: 1;
+        }
+      }
+
+      @keyframes dash {
+        to {
+          stroke-dashoffset: -20;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🏢 대규모 기업 AWS 아키텍처 - 데이터 플로우</h1>
+
+      <svg class="connections" id="flowSvg">
+        <!-- Internet to CloudFront -->
+        <defs>
+          <marker
+            id="arrowhead"
+            markerWidth="10"
+            markerHeight="10"
+            refX="9"
+            refY="3"
+            orient="auto"
+          >
+            <polygon points="0 0, 10 3, 0 6" fill="#00ff00" />
+          </marker>
+          <marker
+            id="arrowhead-blue"
+            markerWidth="10"
+            markerHeight="10"
+            refX="9"
+            refY="3"
+            orient="auto"
+          >
+            <polygon points="0 0, 10 3, 0 6" fill="#4a90e2" />
+          </marker>
+          <marker
+            id="arrowhead-red"
+            markerWidth="10"
+            markerHeight="10"
+            refX="9"
+            refY="3"
+            orient="auto"
+          >
+            <polygon points="0 0, 10 3, 0 6" fill="#ff6b6b" />
+          </marker>
+          <marker
+            id="arrowhead-yellow"
+            markerWidth="10"
+            markerHeight="10"
+            refX="9"
+            refY="3"
+            orient="auto"
+          >
+            <polygon points="0 0, 10 3, 0 6" fill="#ffd700" />
+          </marker>
+        </defs>
+
+        <!-- User to Internet -->
+        <line
+          x1="700"
+          y1="80"
+          x2="700"
+          y2="120"
+          stroke="#00ff00"
+          stroke-width="3"
+          marker-end="url(#arrowhead)"
+          stroke-dasharray="5,5"
+        >
+          <animate
+            attributeName="stroke-dashoffset"
+            from="0"
+            to="-10"
+            dur="1s"
+            repeatCount="indefinite"
+          />
+        </line>
+
+        <!-- CloudFront to ALB -->
+        <line
+          x1="700"
+          y1="180"
+          x2="700"
+          y2="250"
+          stroke="#4a90e2"
+          stroke-width="3"
+          marker-end="url(#arrowhead-blue)"
+          stroke-dasharray="5,5"
+        >
+          <animate
+            attributeName="stroke-dashoffset"
+            from="0"
+            to="-10"
+            dur="1s"
+            repeatCount="indefinite"
+          />
+        </line>
+
+        <!-- IGW to ALB -->
+        <line
+          x1="700"
+          y1="310"
+          x2="350"
+          y2="420"
+          stroke="#ff6b6b"
+          stroke-width="2.5"
+          marker-end="url(#arrowhead-red)"
+          stroke-dasharray="5,5"
+        >
+          <animate
+            attributeName="stroke-dashoffset"
+            from="0"
+            to="-10"
+            dur="1s"
+            repeatCount="indefinite"
+          />
+        </line>
+
+        <!-- ALB to Web Servers (across AZs) -->
+        <path
+          d="M 350 450 Q 300 500, 280 600"
+          stroke="#ffd700"
+          stroke-width="2"
+          fill="none"
+          marker-end="url(#arrowhead-yellow)"
+          stroke-dasharray="5,5"
+        >
+          <animate
+            attributeName="stroke-dashoffset"
+            from="0"
+            to="-10"
+            dur="1.2s"
+            repeatCount="indefinite"
+          />
+        </path>
+        <path
+          d="M 350 450 Q 500 500, 520 600"
+          stroke="#ffd700"
+          stroke-width="2"
+          fill="none"
+          marker-end="url(#arrowhead-yellow)"
+          stroke-dasharray="5,5"
+        >
+          <animate
+            attributeName="stroke-dashoffset"
+            from="0"
+            to="-10"
+            dur="1.2s"
+            repeatCount="indefinite"
+          />
+        </path>
+        <path
+          d="M 350 450 Q 800 500, 920 600"
+          stroke="#ffd700"
+          stroke-width="2"
+          fill="none"
+          marker-end="url(#arrowhead-yellow)"
+          stroke-dasharray="5,5"
+        >
+          <animate
+            attributeName="stroke-dashoffset"
+            from="0"
+            to="-10"
+            dur="1.2s"
+            repeatCount="indefinite"
+          />
+        </path>
+
+        <!-- Web to App Servers -->
+        <line
+          x1="280"
+          y1="650"
+          x2="280"
+          y2="750"
+          stroke="#a8dadc"
+          stroke-width="2"
+          marker-end="url(#arrowhead)"
+          stroke-dasharray="3,3"
+        >
+          <animate
+            attributeName="stroke-dashoffset"
+            from="0"
+            to="-6"
+            dur="0.8s"
+            repeatCount="indefinite"
+          />
+        </line>
+        <line
+          x1="520"
+          y1="650"
+          x2="520"
+          y2="750"
+          stroke="#a8dadc"
+          stroke-width="2"
+          marker-end="url(#arrowhead)"
+          stroke-dasharray="3,3"
+        >
+          <animate
+            attributeName="stroke-dashoffset"
+            from="0"
+            to="-6"
+            dur="0.8s"
+            repeatCount="indefinite"
+          />
+        </line>
+        <line
+          x1="920"
+          y1="650"
+          x2="920"
+          y2="750"
+          stroke="#a8dadc"
+          stroke-width="2"
+          marker-end="url(#arrowhead)"
+          stroke-dasharray="3,3"
+        >
+          <animate
+            attributeName="stroke-dashoffset"
+            from="0"
+            to="-6"
+            dur="0.8s"
+            repeatCount="indefinite"
+          />
+        </line>
+
+        <!-- App to Database -->
+        <line
+          x1="280"
+          y1="850"
+          x2="280"
+          y2="950"
+          stroke="#9b59b6"
+          stroke-width="2.5"
+          marker-end="url(#arrowhead)"
+          stroke-dasharray="5,5"
+        >
+          <animate
+            attributeName="stroke-dashoffset"
+            from="0"
+            to="-10"
+            dur="1s"
+            repeatCount="indefinite"
+          />
+        </line>
+
+        <!-- DB Replication -->
+        <path
+          d="M 350 1000 Q 450 1020, 550 1000"
+          stroke="#ff6b6b"
+          stroke-width="2"
+          fill="none"
+          marker-end="url(#arrowhead-red)"
+          stroke-dasharray="3,3"
+        >
+          <animate
+            attributeName="stroke-dashoffset"
+            from="0"
+            to="-6"
+            dur="1.5s"
+            repeatCount="indefinite"
+          />
+        </path>
+
+        <!-- App to Cache -->
+        <path
+          d="M 280 800 Q 250 880, 280 950"
+          stroke="#50c878"
+          stroke-width="1.5"
+          fill="none"
+          marker-end="url(#arrowhead)"
+          stroke-dasharray="2,2"
+        >
+          <animate
+            attributeName="stroke-dashoffset"
+            from="0"
+            to="-4"
+            dur="0.6s"
+            repeatCount="indefinite"
+          />
+        </path>
+
+        <!-- NAT Gateway flows -->
+        <line
+          x1="150"
+          y1="500"
+          x2="280"
+          y2="750"
+          stroke="#f39c12"
+          stroke-width="1.5"
+          marker-end="url(#arrowhead-yellow)"
+          opacity="0.6"
+          stroke-dasharray="3,3"
+        >
+          <animate
+            attributeName="stroke-dashoffset"
+            from="0"
+            to="-6"
+            dur="1.2s"
+            repeatCount="indefinite"
+          />
+        </line>
+      </svg>
+
+      <div class="content-layer">
+        <div class="user-icon">👥 인터넷 사용자</div>
+
+        <div class="service" style="max-width: 600px; margin: 0 auto 20px auto">
+          <div class="service-title">☁️ CloudFront CDN (Global Edge)</div>
+          <div class="ip">Domain: d2x7fj3k.cloudfront.net</div>
+          <div class="ip public-ip">정적 컨텐츠 캐싱 → S3</div>
+        </div>
+
+        <div class="vpc">
+          <div class="vpc-header">VPC: 10.0.0.0/16 (Production)</div>
+
+          <div class="igw">
+            <span class="flow-label">STEP 1</span><br>
+            Internet Gateway (igw-prod-001) ↓ 외부 트래픽 진입점
+          </div>
+
+          <!-- Main Route Tables -->
+          <div style="display: flex; gap: 20px; margin-bottom: 20px;">
+            <div class="route-table" style="flex: 1;">
+              <div class="route-table-title">📋 Public Route Table (rtb-public)</div>
+              <div class="route-entry">10.0.0.0/16 → local</div>
+              <div class="route-entry" style="color: #ff6b6b;">0.0.0.0/0 → igw-prod-001 (Internet Gateway)</div>
+              <div style="font-size: 10px; color: #888; margin-top: 5px;">연결: Public Subnet A, B, C</div>
+            </div>
+            <div class="route-table" style="flex: 1;">
+              <div class="route-table-title">📋 Private Route Table A (rtb-private-a)</div>
+              <div class="route-entry">10.0.0.0/16 → local</div>
+              <div class="route-entry" style="color: #f39c12;">0.0.0.0/0 → nat-gw-a (NAT Gateway A)</div>
+              <div style="font-size: 10px; color: #888; margin-top: 5px;">연결: Private Subnet A (App, Data)</div>
+            </div>
+            <div class="route-table" style="flex: 1;">
+              <div class="route-table-title">📋 Private Route Table B (rtb-private-b)</div>
+              <div class="route-entry">10.0.0.0/16 → local</div>
+              <div class="route-entry" style="color: #f39c12;">0.0.0.0/0 → nat-gw-b (NAT Gateway B)</div>
+              <div style="font-size: 10px; color: #888; margin-top: 5px;">연결: Private Subnet B (App, Data)</div>
+            </div>
+            <div class="route-table" style="flex: 1;">
+              <div class="route-table-title">📋 Private Route Table C (rtb-private-c)</div>
+              <div class="route-entry">10.0.0.0/16 → local</div>
+              <div class="route-entry" style="color: #f39c12;">0.0.0.0/0 → nat-gw-c (NAT Gateway C)</div>
+              <div style="font-size: 10px; color: #888; margin-top: 5px;">연결: Private Subnet C (App, Data)</div>
+            </div>
+          </div>
+
+          <div class="region">
+            <!-- Availability Zone A -->
+            <div class="az">
+              <div class="az-title">Availability Zone A (ap-northeast-2a)</div>
+
+              <div class="subnet" style="position: relative;">
+                <div class="subnet-header">Public Subnet A: 10.0.1.0/24</div>
+                <div style="font-size: 10px; color: #3498db; margin-bottom: 10px;">
+                  📋 Route Table: rtb-public (0.0.0.0/0 → IGW)
+                </div>
+
+                <div class="instance" style="border: 2px solid #00ff00; position: relative;">
+                  <span class="flow-label">STEP 2 - 첫 번째 진입점</span>
+                  <div class="instance-title">⚖️ Application Load Balancer</div>
+                  <div class="ip">Private IP: 10.0.1.30</div>
+                  <div class="ip public-ip">Public IP: 52.78.150.100</div>
+                  <div class="ip">DNS: prod-alb-123.ap-northeast-2.elb.amazonaws.com</div>
+                  <div style="font-size: 10px; margin-top: 5px; color: #ffd700">
+                    ↓ Target Group으로 트래픽 분산
+                  </div>
+                </div>
+
+                <div class="instance">
+                  <div class="instance-title">🌐 Bastion Host</div>
+                  <div class="ip">Private IP: 10.0.1.10</div>
+                  <div class="ip public-ip">Public IP: 52.78.123.45</div>
+                  <div style="font-size: 10px; margin-top: 5px; color: #888">
+                    ← SSH 관리 전용 (데이터 플로우 외부)
+                  </div>
+                </div>
+
+                <div class="nat">
+                  NAT Gateway A (아웃바운드 전용)<br />Private IP: 10.0.1.20<br />Elastic
+                  IP: 52.78.200.10
+                </div>
+              </div>
+
+              <div class="subnet">
+                <div class="subnet-header">
+                  Private Subnet A (App): 10.0.11.0/24
+                </div>
+                <div style="font-size: 10px; color: #f39c12; margin-bottom: 10px;">
+                  📋 Route Table: rtb-private-a (0.0.0.0/0 → NAT-GW-A)
+                </div>
+
+                <div class="instance" style="border: 2px solid #ffd700;">
+                  <span class="flow-label">STEP 3 - ALB Target</span>
+                  <div class="instance-title">🖥️ Web Server 1</div>
+                  <div class="ip">Private IP: 10.0.11.10</div>
+                  <div style="font-size: 10px; margin-top: 5px; color: #a8dadc">
+                    ↓ 요청 파싱 후 App Server 호출
+                  </div>
+                </div>
+
+                <div class="instance" style="border: 2px solid #9b59b6;">
+                  <span class="flow-label">STEP 4 - 비즈니스 로직</span>
+                  <div class="instance-title">🖥️ App Server 1</div>
+                  <div class="ip">Private IP: 10.0.11.20</div>
+                  <div style="font-size: 10px; margin-top: 5px; color: #9b59b6">
+                    ↓ DB/Cache 조회
+                  </div>
+                </div>
+
+                <div class="instance">
+                  <div class="instance-title">🖥️ App Server 2</div>
+                  <div class="ip">Private IP: 10.0.11.21</div>
+                </div>
+              </div>
+
+              <div class="subnet">
+                <div class="subnet-header">
+                  Private Subnet A (Data): 10.0.21.0/24
+                </div>
+                <div style="font-size: 10px; color: #f39c12; margin-bottom: 10px;">
+                  📋 Route Table: rtb-private-a (0.0.0.0/0 → NAT-GW-A)
+                </div>
+
+                <div class="instance" style="border: 2px solid #50c878;">
+                  <span class="flow-label" style="background: rgba(80, 200, 120, 0.2); border-color: #50c878; color: #50c878;">STEP 5a - 캐시 조회</span>
+                  <div class="instance-title">🗄️ ElastiCache (Redis)</div>
+                  <div class="ip">Private IP: 10.0.21.20</div>
+                  <div style="font-size: 10px; margin-top: 5px; color: #50c878">
+                    세션/캐시 저장 (Cache Hit 시 바로 응답)
+                  </div>
+                </div>
+
+                <div class="instance" style="border: 2px solid #9b59b6;">
+                  <span class="flow-label" style="background: rgba(155, 89, 182, 0.2); border-color: #9b59b6; color: #9b59b6;">STEP 5b - DB 조회</span>
+                  <div class="instance-title">💾 RDS Primary (MySQL)</div>
+                  <div class="ip">Private IP: 10.0.21.10</div>
+                  <div class="ip">
+                    Endpoint: prod-db.c9akciq32.ap-northeast-2.rds.amazonaws.com
+                  </div>
+                  <div style="font-size: 10px; margin-top: 5px; color: #ff6b6b">
+                    → Multi-AZ 동기화 (Cache Miss 시 조회)
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Availability Zone B -->
+            <div class="az">
+              <div class="az-title">Availability Zone B (ap-northeast-2b)</div>
+
+              <div class="subnet">
+                <div class="subnet-header">Public Subnet B: 10.0.2.0/24</div>
+                <div style="font-size: 10px; color: #3498db; margin-bottom: 10px;">
+                  📋 Route Table: rtb-public (0.0.0.0/0 → IGW)
+                </div>
+
+                <div class="instance" style="border: 2px solid #00ff00;">
+                  <span class="flow-label">STEP 2 - ALB Node</span>
+                  <div class="instance-title">⚖️ ALB (Cross-Zone)</div>
+                  <div class="ip">Private IP: 10.0.2.30</div>
+                  <div style="font-size: 10px; margin-top: 5px; color: #ffd700">
+                    ↓ HA 구성 - AZ간 로드밸런싱
+                  </div>
+                </div>
+
+                <div class="nat">
+                  NAT Gateway B (아웃바운드 전용)<br />Private IP: 10.0.2.20<br />Elastic IP:
+                  52.78.200.11
+                </div>
+              </div>
+
+              <div class="subnet">
+                <div class="subnet-header">
+                  Private Subnet B (App): 10.0.12.0/24
+                </div>
+                <div style="font-size: 10px; color: #f39c12; margin-bottom: 10px;">
+                  📋 Route Table: rtb-private-b (0.0.0.0/0 → NAT-GW-B)
+                </div>
+
+                <div class="instance" style="border: 2px solid #ffd700;">
+                  <span class="flow-label">STEP 3 - ALB Target</span>
+                  <div class="instance-title">🖥️ Web Server 2</div>
+                  <div class="ip">Private IP: 10.0.12.10</div>
+                  <div style="font-size: 10px; margin-top: 5px; color: #a8dadc">
+                    ↓ HTTP 처리
+                  </div>
+                </div>
+
+                <div class="instance">
+                  <div class="instance-title">🖥️ App Server 3</div>
+                  <div class="ip">Private IP: 10.0.12.20</div>
+                  <div style="font-size: 10px; margin-top: 5px; color: #9b59b6">
+                    ↓ 비즈니스 로직
+                  </div>
+                </div>
+
+                <div class="instance">
+                  <div class="instance-title">🖥️ App Server 4</div>
+                  <div class="ip">Private IP: 10.0.12.21</div>
+                </div>
+              </div>
+
+              <div class="subnet">
+                <div class="subnet-header">
+                  Private Subnet B (Data): 10.0.22.0/24
+                </div>
+                <div style="font-size: 10px; color: #f39c12; margin-bottom: 10px;">
+                  📋 Route Table: rtb-private-b (0.0.0.0/0 → NAT-GW-B)
+                </div>
+
+                <div class="instance">
+                  <div class="instance-title">💾 RDS Standby (MySQL)</div>
+                  <div class="ip">Private IP: 10.0.22.10</div>
+                  <div class="ip">Multi-AZ Replica ← 동기 복제</div>
+                </div>
+
+                <div class="instance">
+                  <div class="instance-title">🗄️ ElastiCache Replica</div>
+                  <div class="ip">Private IP: 10.0.22.20</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Availability Zone C -->
+            <div class="az">
+              <div class="az-title">Availability Zone C (ap-northeast-2c)</div>
+
+              <div class="subnet">
+                <div class="subnet-header">Public Subnet C: 10.0.3.0/24</div>
+                <div style="font-size: 10px; color: #3498db; margin-bottom: 10px;">
+                  📋 Route Table: rtb-public (0.0.0.0/0 → IGW)
+                </div>
+
+                <div class="instance" style="border: 2px solid #00ff00;">
+                  <span class="flow-label">STEP 2 - ALB Node</span>
+                  <div class="instance-title">⚖️ ALB (Cross-Zone)</div>
+                  <div class="ip">Private IP: 10.0.3.30</div>
+                  <div style="font-size: 10px; margin-top: 5px; color: #ffd700">
+                    ↓ HA 구성 - AZ간 로드밸런싱
+                  </div>
+                </div>
+
+                <div class="nat">
+                  NAT Gateway C (아웃바운드 전용)<br />Private IP: 10.0.3.20<br />Elastic IP:
+                  52.78.200.12
+                </div>
+              </div>
+
+              <div class="subnet">
+                <div class="subnet-header">
+                  Private Subnet C (App): 10.0.13.0/24
+                </div>
+                <div style="font-size: 10px; color: #f39c12; margin-bottom: 10px;">
+                  📋 Route Table: rtb-private-c (0.0.0.0/0 → NAT-GW-C)
+                </div>
+
+                <div class="instance" style="border: 2px solid #ffd700;">
+                  <span class="flow-label">STEP 3 - ALB Target</span>
+                  <div class="instance-title">🖥️ Web Server 3</div>
+                  <div class="ip">Private IP: 10.0.13.10</div>
+                </div>
+
+                <div class="instance">
+                  <div class="instance-title">🖥️ App Server 5</div>
+                  <div class="ip">Private IP: 10.0.13.20</div>
+                </div>
+
+                <div class="instance">
+                  <div class="instance-title">⚙️ Worker Server</div>
+                  <div class="ip">Private IP: 10.0.13.30</div>
+                  <div style="font-size: 10px; margin-top: 5px; color: #888">
+                    백그라운드 작업
+                  </div>
+                </div>
+              </div>
+
+              <div class="subnet">
+                <div class="subnet-header">
+                  Private Subnet C (Data): 10.0.23.0/24
+                </div>
+                <div style="font-size: 10px; color: #f39c12; margin-bottom: 10px;">
+                  📋 Route Table: rtb-private-c (0.0.0.0/0 → NAT-GW-C)
+                </div>
+
+                <div class="instance">
+                  <div class="instance-title">📊 Analytics DB (RDS)</div>
+                  <div class="ip">Private IP: 10.0.23.10</div>
+                  <div style="font-size: 10px; margin-top: 5px; color: #888">
+                    Read Replica
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- AWS Services -->
+          <div style="display: flex; gap: 20px; margin-top: 20px">
+            <div class="service" style="flex: 1">
+              <div class="service-title">📦 S3 Buckets</div>
+              <div class="ip">prod-static-assets (VPC Endpoint)</div>
+              <div class="ip">prod-backups ← 자동 백업</div>
+              <div class="ip">prod-logs ← CloudWatch 로그</div>
+            </div>
+
+            <div class="service" style="flex: 1">
+              <div class="service-title">🔐 Security & Monitoring</div>
+              <div class="ip">Route 53: prod.company.com → CloudFront</div>
+              <div class="ip">WAF: DDoS 방어, SQL Injection 차단</div>
+              <div class="ip">CloudWatch: 메트릭/로그 수집</div>
+              <div class="ip">VPC Flow Logs: 네트워크 트래픽 감사</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 라우팅 테이블 요약 -->
+        <div
+          style="
+            background: #1e3a5f;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            border: 2px solid #3498db;
+          "
+        >
+          <h3 style="color: #3498db; margin-bottom: 15px">
+            📋 라우팅 테이블 요약
+          </h3>
+          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; font-size: 13px;">
+            <div>
+              <strong style="color: #3498db;">Public Route Table (rtb-public)</strong>
+              <div style="color: #87ceeb; font-family: monospace; margin-top: 8px;">
+                <div>10.0.0.0/16 → local (VPC 내부 통신)</div>
+                <div style="color: #ff6b6b;">0.0.0.0/0 → igw-prod-001 (인터넷)</div>
+              </div>
+              <div style="color: #888; font-size: 11px; margin-top: 5px;">
+                연결된 서브넷: Public Subnet A, B, C (10.0.1.0/24, 10.0.2.0/24, 10.0.3.0/24)
+              </div>
+            </div>
+            <div>
+              <strong style="color: #f39c12;">Private Route Tables (rtb-private-a/b/c)</strong>
+              <div style="color: #87ceeb; font-family: monospace; margin-top: 8px;">
+                <div>10.0.0.0/16 → local (VPC 내부 통신)</div>
+                <div style="color: #f39c12;">0.0.0.0/0 → nat-gw-{a,b,c} (각 AZ NAT)</div>
+              </div>
+              <div style="color: #888; font-size: 11px; margin-top: 5px;">
+                연결된 서브넷: Private Subnet (App/Data) 각 AZ별
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div
+          style="
+            background: #2d3748;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+          "
+        >
+          <h3 style="color: #ff9900; margin-bottom: 15px">
+            📊 인바운드 데이터 플로우 (사용자 요청)
+          </h3>
+          <div style="font-size: 13px;">
+            <table style="width: 100%; border-collapse: collapse;">
+              <tr style="border-bottom: 1px solid #4a5568;">
+                <td style="padding: 10px; color: #00ff00; font-weight: bold; width: 80px;">STEP 1</td>
+                <td style="padding: 10px;">
+                  <strong>Internet Gateway</strong> - 외부 트래픽이 VPC로 진입하는 관문<br>
+                  <span style="color: #888;">Route 53 DNS → CloudFront CDN → IGW</span>
+                </td>
+              </tr>
+              <tr style="border-bottom: 1px solid #4a5568;">
+                <td style="padding: 10px; color: #00ff00; font-weight: bold;">STEP 2</td>
+                <td style="padding: 10px;">
+                  <strong>Application Load Balancer (Public Subnet)</strong> - 첫 번째 접근 서비스<br>
+                  <span style="color: #888;">Public Subnet의 ALB가 요청을 수신하고 Target Group으로 분배</span>
+                </td>
+              </tr>
+              <tr style="border-bottom: 1px solid #4a5568;">
+                <td style="padding: 10px; color: #ffd700; font-weight: bold;">STEP 3</td>
+                <td style="padding: 10px;">
+                  <strong>Web Server (Private Subnet - App)</strong> - ALB Target<br>
+                  <span style="color: #888;">HTTP 요청 파싱, 정적 리소스 처리, App Server 호출</span>
+                </td>
+              </tr>
+              <tr style="border-bottom: 1px solid #4a5568;">
+                <td style="padding: 10px; color: #9b59b6; font-weight: bold;">STEP 4</td>
+                <td style="padding: 10px;">
+                  <strong>App Server (Private Subnet - App)</strong> - 비즈니스 로직<br>
+                  <span style="color: #888;">API 처리, 데이터 조회 로직 실행</span>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding: 10px; color: #50c878; font-weight: bold;">STEP 5</td>
+                <td style="padding: 10px;">
+                  <strong>Cache/DB (Private Subnet - Data)</strong> - 데이터 레이어<br>
+                  <span style="color: #50c878;">5a. ElastiCache (Redis) - 캐시 조회 (Cache Hit 시 바로 응답)</span><br>
+                  <span style="color: #9b59b6;">5b. RDS Primary (MySQL) - DB 조회 (Cache Miss 시)</span>
+                </td>
+              </tr>
+            </table>
+          </div>
+        </div>
+
+        <div class="legend">
+          <div class="legend-item">
+            <div class="legend-box" style="background: #00ff00"></div>
+            <span>인바운드 트래픽 / 첫 번째 진입점</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-line" style="background: #4a90e2"></div>
+            <span>내부 통신</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-line" style="background: #ff6b6b"></div>
+            <span>DB 복제</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-line" style="background: #ffd700"></div>
+            <span>로드밸런싱</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-line" style="background: #f39c12"></div>
+            <span>NAT 아웃바운드</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-line" style="background: #9b59b6"></div>
+            <span>DB 쿼리</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-line" style="background: #50c878"></div>
+            <span>캐시 조회</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-box" style="background: #1e3a5f; border: 2px solid #3498db;"></div>
+            <span>Public Route Table (→ IGW)</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-box" style="background: #1e3a5f; border: 2px solid #f39c12;"></div>
+            <span>Private Route Table (→ NAT)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

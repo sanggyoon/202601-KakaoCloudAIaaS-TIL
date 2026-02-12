@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <title>AWS Enterprise Architecture</title>
+    <style>
+      body {
+        font-family: Arial;
+        background: #f5f7fa;
+      }
+
+      .container {
+        padding: 20px;
+      }
+
+      .box {
+        border: 2px solid #333;
+        border-radius: 10px;
+        padding: 10px;
+        margin: 10px;
+        background: white;
+      }
+
+      .region {
+        border-color: #1f77b4;
+      }
+
+      .vpc {
+        border-color: #2ca02c;
+      }
+
+      .az {
+        border-color: #ff7f0e;
+      }
+
+      .subnet-public {
+        border-color: #e74c3c;
+      }
+      .subnet-private {
+        border-color: #27ae60;
+      }
+      .subnet-db {
+        border-color: #8e44ad;
+      }
+
+      .instance {
+        border: 1px solid #555;
+        margin: 5px;
+        padding: 5px;
+        border-radius: 6px;
+        background: #fafafa;
+      }
+
+      .row {
+        display: flex;
+      }
+
+      .column {
+        flex: 1;
+      }
+
+      h2,
+      h3,
+      h4 {
+        margin: 5px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="box region">
+        <h2>AWS Region: ap-northeast-2 (Seoul)</h2>
+
+        <div class="box vpc">
+          <h3>VPC: 10.0.0.0/16</h3>
+
+          <div class="row">
+            <!-- AZ-A -->
+            <div class="column">
+              <div class="box az">
+                <h3>AZ-A</h3>
+
+                <div class="box subnet-public">
+                  <h4>Public Subnet</h4>
+                  CIDR: 10.0.1.0/24
+
+                  <div class="instance">
+                    <b>Application Load Balancer</b><br />
+                    Public IP: 3.34.10.1
+                  </div>
+
+                  <div class="instance">
+                    <b>Bastion Host</b><br />
+                    Public IP: 3.34.10.10<br />
+                    Private IP: 10.0.1.10
+                  </div>
+
+                  <div class="instance">
+                    <b>NAT Gateway</b><br />
+                    Public IP: 3.34.10.20
+                  </div>
+                </div>
+
+                <div class="box subnet-private">
+                  <h4>Private App Subnet</h4>
+                  CIDR: 10.0.11.0/24
+
+                  <div class="instance">
+                    <b>App Server A1</b><br />
+                    Private IP: 10.0.11.10
+                  </div>
+
+                  <div class="instance">
+                    <b>App Server A2</b><br />
+                    Private IP: 10.0.11.11
+                  </div>
+                </div>
+
+                <div class="box subnet-db">
+                  <h4>Private DB Subnet</h4>
+                  CIDR: 10.0.21.0/24
+
+                  <div class="instance">
+                    <b>RDS Primary</b><br />
+                    Private IP: 10.0.21.10
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- AZ-B -->
+            <div class="column">
+              <div class="box az">
+                <h3>AZ-B</h3>
+
+                <div class="box subnet-public">
+                  <h4>Public Subnet</h4>
+                  CIDR: 10.0.2.0/24
+
+                  <div class="instance">
+                    <b>Application Load Balancer</b><br />
+                    Public IP: 3.35.20.1
+                  </div>
+
+                  <div class="instance">
+                    <b>Bastion Host</b><br />
+                    Public IP: 3.35.20.10<br />
+                    Private IP: 10.0.2.10
+                  </div>
+                </div>
+
+                <div class="box subnet-private">
+                  <h4>Private App Subnet</h4>
+                  CIDR: 10.0.12.0/24
+
+                  <div class="instance">
+                    <b>App Server B1</b><br />
+                    Private IP: 10.0.12.10
+                  </div>
+
+                  <div class="instance">
+                    <b>App Server B2</b><br />
+                    Private IP: 10.0.12.11
+                  </div>
+                </div>
+
+                <div class="box subnet-db">
+                  <h4>Private DB Subnet</h4>
+                  CIDR: 10.0.22.0/24
+
+                  <div class="instance">
+                    <b>RDS Standby</b><br />
+                    Private IP: 10.0.22.10
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
