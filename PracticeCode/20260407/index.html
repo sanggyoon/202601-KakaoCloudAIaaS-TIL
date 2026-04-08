@@ -1,0 +1,221 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>OCR Web</title>
+    <style>
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+
+      body {
+        font-family: 'Segoe UI', sans-serif;
+        background: #f0f2f5;
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        padding: 40px 16px;
+      }
+
+      .container {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        padding: 36px;
+        width: 100%;
+        max-width: 800px;
+        height: fit-content;
+      }
+
+      h1 {
+        font-size: 24px;
+        color: #1a1a2e;
+        margin-bottom: 28px;
+        padding-bottom: 16px;
+        border-bottom: 2px solid #f0f2f5;
+      }
+
+      .form-group {
+        margin-bottom: 20px;
+      }
+
+      label {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        color: #555;
+        margin-bottom: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      select {
+        width: 100%;
+        padding: 10px 14px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-size: 15px;
+        color: #333;
+        background: #fafafa;
+        cursor: pointer;
+        outline: none;
+        transition: border-color 0.2s;
+      }
+
+      select:focus { border-color: #4f46e5; background: white; }
+
+      .preview-box {
+        margin-top: 12px;
+        border: 1px dashed #ddd;
+        border-radius: 8px;
+        background: #fafafa;
+        min-height: 160px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+      }
+
+      .preview-box img {
+        max-width: 100%;
+        max-height: 300px;
+        border-radius: 6px;
+        display: none;
+      }
+
+      .preview-placeholder {
+        color: #aaa;
+        font-size: 14px;
+      }
+
+      button {
+        width: 100%;
+        padding: 12px;
+        background: #4f46e5;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        margin-top: 8px;
+        transition: background 0.2s;
+      }
+
+      button:hover { background: #4338ca; }
+      button:disabled { background: #a5b4fc; cursor: not-allowed; }
+
+      .result-box {
+        margin-top: 28px;
+        padding-top: 24px;
+        border-top: 2px solid #f0f2f5;
+      }
+
+      .result-box h2 {
+        font-size: 16px;
+        font-weight: 600;
+        color: #555;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 12px;
+      }
+
+      pre {
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        padding: 16px;
+        font-size: 15px;
+        line-height: 1.6;
+        white-space: pre-wrap;
+        word-break: break-all;
+        color: #333;
+        min-height: 80px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>OCR 텍스트 인식</h1>
+
+      <div class="form-group">
+        <label>이미지 선택</label>
+        <select id="imageSelect" onchange="previewImage()">
+          <option value="">-- 이미지를 선택하세요 --</option>
+        </select>
+        <div class="preview-box">
+          <span class="preview-placeholder" id="placeholder">이미지를 선택하면 미리보기가 표시됩니다</span>
+          <img id="preview" alt="미리보기">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>언어 선택</label>
+        <select id="langSelect">
+          <option value="eng">영어</option>
+          <option value="kor">한국어</option>
+          <option value="kor+eng">한국어 + 영어</option>
+        </select>
+      </div>
+
+      <button id="btn" onclick="runOCR()">인식 시작</button>
+
+      <div class="result-box">
+        <h2>인식 결과</h2>
+        <pre id="result">결과가 여기에 표시됩니다.</pre>
+      </div>
+    </div>
+
+    <script>
+      async function loadImages() {
+        const res = await fetch('/api/images');
+        const data = await res.json();
+        const select = document.getElementById('imageSelect');
+        data.images.forEach(img => {
+          const opt = document.createElement('option');
+          opt.value = img;
+          opt.text = img;
+          select.appendChild(opt);
+        });
+      }
+
+      function previewImage() {
+        const filename = document.getElementById('imageSelect').value;
+        const img = document.getElementById('preview');
+        const placeholder = document.getElementById('placeholder');
+        if (filename) {
+          img.src = `/static/images/${filename}`;
+          img.style.display = 'block';
+          placeholder.style.display = 'none';
+        } else {
+          img.style.display = 'none';
+          placeholder.style.display = 'block';
+        }
+      }
+
+      async function runOCR() {
+        const filename = document.getElementById('imageSelect').value;
+        if (!filename) {
+          alert('이미지를 선택해주세요.');
+          return;
+        }
+        const lang = document.getElementById('langSelect').value;
+        const btn = document.getElementById('btn');
+        btn.disabled = true;
+        btn.textContent = '인식 중...';
+        document.getElementById('result').textContent = '처리 중입니다...';
+
+        const res = await fetch('/api/ocr', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ filename, lang })
+        });
+        const data = await res.json();
+        document.getElementById('result').textContent = data.text || data.error;
+
+        btn.disabled = false;
+        btn.textContent = '인식 시작';
+      }
+
+      loadImages();
+    </script>
+  </body>
+</html>
