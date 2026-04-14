@@ -40,6 +40,7 @@ build/
 ._*
 
 # 파이썬 가상환경 설정
+.venv/
 venv/
 venv/*/
 __pycache__/
