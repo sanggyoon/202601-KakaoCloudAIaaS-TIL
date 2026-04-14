@@ -47,6 +47,3 @@ __pycache__/
 *.pyo
 *.pyd
 .pytest_cache/
-
-* 파일
-20260401/
