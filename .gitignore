@@ -48,3 +48,9 @@ __pycache__/
 *.pyo
 *.pyd
 .pytest_cache/
+
+# 모델
+*.pth
+
+# 제외 프로젝트, 폴더
+20260416/
